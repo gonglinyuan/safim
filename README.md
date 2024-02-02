@@ -17,7 +17,7 @@ tqdm==4.64.1 tree-sitter==0.20.4 requests==2.28.1
 
 If you encounter issues with `libstd++`, and you are using a conda environment, you can try this solution:
 
-```
+```bash
 conda install -n [ENV_NAME] libstdcxx-ng=12.2.0 -c conda-forge
 ```
 
