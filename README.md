@@ -142,14 +142,22 @@ So the Pass@1 is 54.10%
 
 ## Evaluate Your Model and Submit the Results
 
-To evaluate your own model, you need to add a class to `model_utils.py` that inherits the `ModelWrapper` base class. You
-can refer to the implementation of other classes in the same file. In your class implementation, you need to specify how
-your model is loaded, the sentinel tokens for FIM, and other hyperparameters. After that, add an entry to the
-`build_model` function in `model_utils.py`.
+To evaluate your own model with the SAFIM benchmark, follow these steps:
+
+### Model Integration
+
+Implement a new class in `model_utils.py` that inherits from `ModelWrapper`. This class should handle model loading,
+define sentinel tokens for Fill-in-the-Middle (FIM) tasks, and set relevant hyperparameters.
+Refer to existing class implementations for details.
+
+Next, integrate your model into the framework by adding it to the `build_model` function within `model_utils.py`.
 
 ### Generate
 
-Then you can use `generate.py` to do inference using your model on the three subtasks:
+Use `generate.py` to produce predictions for each of the three subtasks.
+Replace `NAME_OF_YOUR_MODEL` with your model's identifier:
+
+For Algorithmic Block Completion:
 
 ```bash
 mkdir -p cache outputs_block
@@ -162,6 +170,8 @@ python generate.py \
   --post_processors truncate_block
 ```
 
+For Control-Flow Expression Completion:
+
 ```bash
 mkdir -p cache outputs_control
 python generate.py \
@@ -172,6 +182,8 @@ python generate.py \
   infilling \
   --post_processors truncate_control
 ```
+
+For API Function Call Completion:
 
 ```bash
 mkdir -p cache outputs_api
@@ -186,9 +198,8 @@ python generate.py \
 
 ### Prompts and Post-Processing
 
-In the example above, the prompt is set to `infilling`, which means the prefix-suffix-middle (PSM) prompt. Other prompts
-mentioned in our paper is also implemented in this codebase, where you can refer to `prompt_utils.py` for more details.
-Here is a list of recommended prompts you can try:
+Select a prompt strategy based on your model's design and the task specifics, for details, please refer to code or our
+paper:
 
 - `infilling`: Prefix-Suffix-Middle (PSM)
 - `reverse_infilling`: Suffix-Prefix-Middle (SPM)
@@ -196,16 +207,15 @@ Here is a list of recommended prompts you can try:
 - `prefix_feeding`: Instructed Prefix Feeding (IPF)
 - `fewshot`: One-Shot (1S)
 
-If your model is a chat model that outputs Markdown-style natural language with code embedded in one of code cells,
-you can prepend `extract_code` to the list of `--post_processors`.
+For chat models that outputs Markdown-style outputs, prepend `extract_code` to the list of `--post_processors` for code
+extraction from Markdown outputs.
 
-In `prefix_feeding` mode, add flag `--block_comments` to mask the logits to prevent the model from repeating comments.
-It requires the model to support logit processors (generally supported for Huggingface models), and it usually reduces
-the chance of generate degenerate outputs and improves output quality of models.
+For `prefix_feeding` mode, use `--block_comments` to mask the logits to prevent the model from generating comments,
+which usually improve output quality by avoiding comment repetition.
 
 ### Evaluate and Upload
 
-Then you can use `evaluate.py` to evaluate your model on the three subtasks:
+Evaluate your model's performance using `evaluate.py` and submit the results for leaderboard inclusion:
 
 ```bash
 mkdir -p results_block
