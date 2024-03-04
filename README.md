@@ -8,6 +8,7 @@ results.
 
 ![Three splits in the SAFIM benchmark illustrated with code examples.](assets/safim.png)
 
+- Authors: [Linyuan Gong](https://gonglinyuan.com), Sida Wang, Mostafa Elhoushi, Alvin Cheung
 - Paper: [to be released](https://arxiv.org)
 - Leaderboard: [https://safimbenchmark.com](https://safimbenchmark.com)
 - Huggingface
@@ -234,6 +235,14 @@ The result files `results_block/NAME_OF_YOUR_MODEL-fim-tb.jsonl`, `results_contr
 and `results_api/NAME_OF_YOUR_MODEL-fim-tb.jsonl` can be submitted to
 [https://safimbenchmark.com/submit](https://safimbenchmark.com/submit) to put your model on the leaderboard. Note that
 this page requires login using your Google account.
+
+## Disclaimer
+
+The SAFIM benchmark is partially derived from problem descriptions and code solutions from
+[https://codeforces.com](https://codeforces.com). According to the license of CodeForces, you may publish the texts of
+Codeforces problems in any open sources, but you must preserve a direct link to the site.
+
+The SAFIM benchmark is created by Linyuan Gong, and Meta (Meta Platforms, Inc.) was not involved in dataset creation.
 
 ## Citation
 
