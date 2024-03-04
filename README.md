@@ -1,3 +1,18 @@
+# SAFIM Benchmark
+
+Syntax-Aware Fill-in-the-Middle (SAFIM) is a benchmark for evaluating Large Language Models (LLMs) on
+the code Fill-in-the-Middle (FIM) task. SAFIM has three subtasks: Algorithmic Block Completion,
+Control-Flow Expression Completion, and API Function Call Completion. SAFIM is sourced from code
+submitted from April 2022 to January 2023 to minimize the impact of data contamination on evaluation
+results.
+
+![Three splits in the SAFIM benchmark illustrated with code examples.](assets/safim.png)
+
+- Paper: [to be released](https://arxiv.org)
+- Leaderboard: [https://safimbenchmark.com](https://safimbenchmark.com)
+- Huggingface
+  Dataset: [https://huggingface.co/datasets/gonglinyuan/safim](https://huggingface.co/datasets/gonglinyuan/safim)
+
 ## Environment Setup
 
 Python version: 3.8.12
@@ -36,7 +51,7 @@ docker build . -t exec-eval:1.0
 docker run -it -p 5000:5000 -e NUM_WORKERS=2 exec-eval:1.0
 ```
 
-## Generation and Evaluation
+## Reproduce Results in Our Paper
 
 ### GPT-3.5 + One-Shot Prompt + Algorithmic Block Completion
 
@@ -123,3 +138,105 @@ deepseek-coder-1.3b-base-fim-tc,51.813153,56.777597,56.533333,59.176030,54.09665
 ```
 
 So the Pass@1 is 54.10%
+
+## Evaluate Your Model and Submit the Results
+
+To evaluate your own model, you need to add a class to `model_utils.py` that inherits the `ModelWrapper` base class. You
+can refer to the implementation of other classes in the same file. In your class implementation, you need to specify how
+your model is loaded, the sentinel tokens for FIM, and other hyperparameters. After that, add an entry to the
+`build_model` function in `model_utils.py`.
+
+### Generate
+
+Then you can use `generate.py` to do inference using your model on the three subtasks:
+
+```bash
+mkdir -p cache outputs_block
+python generate.py \
+  NAME_OF_YOUR_MODEL \
+  block \
+  cache/NAME_OF_YOUR_MODEL.json \
+  outputs_block/NAME_OF_YOUR_MODEL-fim-tb.jsonl \
+  infilling \
+  --post_processors truncate_block
+```
+
+```bash
+mkdir -p cache outputs_control
+python generate.py \
+  NAME_OF_YOUR_MODEL \
+  control \
+  cache/NAME_OF_YOUR_MODEL.json \
+  outputs_control/NAME_OF_YOUR_MODEL-fim-tc.jsonl \
+  infilling \
+  --post_processors truncate_control
+```
+
+```bash
+mkdir -p cache outputs_api
+python generate.py \
+  NAME_OF_YOUR_MODEL \
+  api \
+  cache/NAME_OF_YOUR_MODEL.json \
+  outputs_api/NAME_OF_YOUR_MODEL-fim-ta.jsonl \
+  infilling \
+  --post_processors truncate_api
+```
+
+### Prompts and Post-Processing
+
+In the example above, the prompt is set to `infilling`, which means the prefix-suffix-middle (PSM) prompt. Other prompts
+mentioned in our paper is also implemented in this codebase, where you can refer to `prompt_utils.py` for more details.
+Here is a list of recommended prompts you can try:
+
+- `infilling`: Prefix-Suffix-Middle (PSM)
+- `reverse_infilling`: Suffix-Prefix-Middle (SPM)
+- `left_to_right`: Left-to-Right (L2R)
+- `prefix_feeding`: Instructed Prefix Feeding (IPF)
+- `fewshot`: One-Shot (1S)
+
+If your model is a chat model that outputs Markdown-style natural language with code embedded in one of code cells,
+you can prepend `extract_code` to the list of `--post_processors`.
+
+In `prefix_feeding` mode, add flag `--block_comments` to mask the logits to prevent the model from repeating comments.
+It requires the model to support logit processors (generally supported for Huggingface models), and it usually reduces
+the chance of generate degenerate outputs and improves output quality of models.
+
+### Evaluate and Upload
+
+Then you can use `evaluate.py` to evaluate your model on the three subtasks:
+
+```bash
+mkdir -p results_block
+python evaluate.py \
+  block \
+  outputs_block/NAME_OF_YOUR_MODEL-fim-tb.jsonl \
+  results_block/NAME_OF_YOUR_MODEL-fim-tb.jsonl
+```
+
+```bash
+mkdir -p results_control
+python evaluate.py \
+  control \
+  outputs_control/NAME_OF_YOUR_MODEL-fim-tc.jsonl \
+  results_control/NAME_OF_YOUR_MODEL-fim-tc.jsonl
+```
+
+```bash
+mkdir -p results_api
+python evaluate.py \
+  api \
+  outputs_api/NAME_OF_YOUR_MODEL-fim-ta.jsonl \
+  results_api/NAME_OF_YOUR_MODEL-fim-ta.jsonl
+```
+
+The result files `results_block/NAME_OF_YOUR_MODEL-fim-tb.jsonl`, `results_control/NAME_OF_YOUR_MODEL-fim-tc.jsonl`,
+and `results_api/NAME_OF_YOUR_MODEL-fim-tb.jsonl` can be submitted to
+[https://safimbenchmark.com/submit](https://safimbenchmark.com/submit) to put your model on the leaderboard. Note that
+this page requires login using your Google account.
+
+## Citation
+
+```
+WIP
+```
