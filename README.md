@@ -248,13 +248,11 @@ and `results_api/NAME_OF_YOUR_MODEL-fim-tb.jsonl` can be submitted to
 [https://safimbenchmark.com/submit](https://safimbenchmark.com/submit) to put your model on the leaderboard. Note that
 this page requires login using your Google account.
 
-## Disclaimer
+## Copyright Information
 
 The SAFIM benchmark is partially derived from problem descriptions and code solutions from
 [https://codeforces.com](https://codeforces.com). According to the license of CodeForces, you may publish the texts of
 Codeforces problems in any open sources, but you must preserve a direct link to the site.
-
-The SAFIM benchmark is created by Linyuan Gong, and Meta (Meta Platforms, Inc.) was not involved in dataset creation.
 
 ## Citation
 
