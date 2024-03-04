@@ -1,37 +1,19 @@
 import argparse
 import csv
-import gzip
-import json
 import os
 import sys
 from collections import defaultdict
-from typing import Dict, Iterable
 
-
-def stream_jsonl(filename: str) -> Iterable[Dict]:
-    """
-    Parses each jsonl line and yields it as a dictionary
-    """
-    if filename.endswith(".gz"):
-        with open(filename, "rb") as gzfp:
-            with gzip.open(gzfp, 'rt') as fp:
-                for line in fp:
-                    if any(not x.isspace() for x in line):
-                        yield json.loads(line)
-    else:
-        with open(filename, "r") as fp:
-            for line in fp:
-                if any(not x.isspace() for x in line):
-                    yield json.loads(line)
+from data_utils import load_dataset, stream_jsonl
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("data_path", type=str)
+    parser.add_argument("completion_type", type=str)
     parser.add_argument("result_path", type=str)
     args = parser.parse_args()
 
-    problems = stream_jsonl(args.data_path)
+    problems = load_dataset(args.completion_type)
     problem_to_lang = {problem["task_id"]: problem["lang"] for problem in problems}
 
     pass_cnt, total = defaultdict(int), defaultdict(int)
@@ -59,7 +41,7 @@ def main():
                 results_cnt[list(r_set)[0]] += 1
 
     ALL_OUTCOMES = ['EMPTY', 'COMPILATION_ERROR', 'RUNTIME_ERROR', 'MEMORY_LIMIT_EXCEEDED', 'TIME_LIMIT_EXCEEDED',
-        'WRONG_ANSWER', 'MIXED']
+                    'WRONG_ANSWER', 'MIXED']
     writer = csv.writer(sys.stdout)
     # writer.writerow(['C++', 'Java', 'Python', 'C#', 'All'] + ALL_OUTCOMES)
     writer.writerow(

@@ -12,7 +12,7 @@ torch==1.13.0+cu117 torchvision==0.14.0+cu117 torchaudio==0.13.0 \
 --extra-index-url https://download.pytorch.org/whl/cu117
 python -m pip install \
 Jinja2==3.1.2 openai==0.28.1 tiktoken==0.5.2 transformers==4.36.0 \
-tqdm==4.64.1 tree-sitter==0.20.4 requests==2.28.1
+tqdm==4.64.1 tree-sitter==0.20.4 requests==2.28.1 datasets==2.18.0
 ```
 
 If you encounter issues with `libstd++`, and you are using a conda environment, you can try this solution:
@@ -47,7 +47,6 @@ export OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE
 mkdir -p cache outputs_block
 python generate.py \
   gpt-3.5-turbo-0301 \
-  data/block_completion.jsonl.gz \
   block \
   cache/gpt-3.5-turbo-0301.json \
   outputs_block/gpt-3.5-turbo-0301-few-ex-tb.jsonl \
@@ -60,7 +59,7 @@ Evaluation:
 ```bash
 mkdir -p results_block
 python evaluate.py \
-  data/block_completion.jsonl.gz \
+  block \
   outputs_block/gpt-3.5-turbo-0301-few-ex-tb.jsonl \
   results_block/gpt-3.5-turbo-0301-few-ex-tb.jsonl
 ```
@@ -69,7 +68,7 @@ Show results:
 
 ```bash
 python show_detailed_results.py \
-  data/block_completion.jsonl.gz \
+  block \
   results_block/gpt-3.5-turbo-0301-few-ex-tb.jsonl
 ```
 
@@ -83,7 +82,8 @@ So the pass@1 is 31.24%. For the interpretation of the other numbers, please ref
 
 ### DeekSeek-Coder-1.3B + PSM Prompt + Control-Flow Completion
 
-This examples shows how to do generation using DeepSeek-Coder-1.3B using Prefix-Suffix-Middle infilling prompt on the control-flow completion task. This experiment requires a single GPU.
+This examples shows how to do generation using DeepSeek-Coder-1.3B using Prefix-Suffix-Middle infilling prompt on the
+control-flow completion task. This experiment requires a single GPU.
 
 Generate:
 
@@ -91,7 +91,6 @@ Generate:
 mkdir -p cache outputs_control
 python generate.py \
   deepseek-ai/deepseek-coder-1.3b-base \
-  data/control_completion.jsonl.gz \
   control \
   cache/deepseek-coder-1.3b-base.json \
   outputs_control/deepseek-coder-1.3b-base-fim-tc.jsonl \
@@ -104,7 +103,7 @@ Evaluation:
 ```bash
 mkdir -p results_control
 python evaluate.py \
-  data/control_completion.jsonl.gz \
+  control \
   outputs_control/deepseek-coder-1.3b-base-fim-tc.jsonl \
   results_control/deepseek-coder-1.3b-base-fim-tc.jsonl
 ```
@@ -113,7 +112,7 @@ Show results:
 
 ```bash
 python show_detailed_results.py \
-  data/control_completion.jsonl.gz \
+  control \
   results_control/deepseek-coder-1.3b-base-fim-tc.jsonl
 ```
 
