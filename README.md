@@ -17,7 +17,9 @@ results.
 ## Environment Setup
 
 Python version: 3.8.12
+
 CUDA version: 11.7
+
 Docker CE version: 24.0.7
 
 Install dependencies:
