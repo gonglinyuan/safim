@@ -26,9 +26,6 @@ def load_dataset(task):
     ds = datasets.load_dataset("gonglinyuan/safim", task, split="test")
     lst = []
     for m in ds:
-        m["unit_tests"] = [
-            {"input": i, "output": o}
-            for i, o in zip(m["unit_tests"]["input"], m["unit_tests"]["output"])
-        ]
+        m["unit_tests"] = json.loads(m["unit_tests"])
         lst.append(m)
     return lst
