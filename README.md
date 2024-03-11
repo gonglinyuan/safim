@@ -9,7 +9,7 @@ results.
 ![Three splits in the SAFIM benchmark illustrated with code examples.](assets/safim.png)
 
 - Authors: [Linyuan Gong](https://gonglinyuan.com), Sida Wang, Mostafa Elhoushi, Alvin Cheung
-- Paper: [to be released](https://arxiv.org)
+- Paper: [https://arxiv.org/abs/2403.04814](https://arxiv.org/abs/2403.04814)
 - Leaderboard: [https://safimbenchmark.com](https://safimbenchmark.com)
 - Huggingface
   Dataset: [https://huggingface.co/datasets/gonglinyuan/safim](https://huggingface.co/datasets/gonglinyuan/safim)
@@ -257,5 +257,15 @@ Codeforces problems in any open sources, but you must preserve a direct link to 
 ## Citation
 
 ```
-WIP
+@article{
+    safim,
+    title={Evaluation of {LLM}s on Syntax-Aware Code Fill-in-the-Middle Tasks},
+    url={http://arxiv.org/abs/2403.04814},
+    note={arXiv:2403.04814 [cs]},
+    number={arXiv:2403.04814},
+    publisher={arXiv},
+    author={Gong, Linyuan and Wang, Sida and Elhoushi, Mostafa and Cheung, Alvin},
+    year={2024},
+    month=mar
+}
 ```
