@@ -337,6 +337,156 @@ class DeepseekModel(ModelWrapper):
             return "<｜fim▁begin｜>" + prefix + "<｜fim▁hole｜>" + suffix + "<｜fim▁end｜>"
 
 
+class PhiModel(ModelWrapper):
+    def __init__(self, model_name, max_length, block_comments=False):
+        assert model_name.startswith("microsoft/phi")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        self.max_length = max_length
+        device = torch.device("cuda")
+        self.tokenizer.padding_side = "left"
+        self.tokenizer.pad_token_id = 50256
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_name, torch_dtype=torch.float16, trust_remote_code=True
+        ).to(device)
+        self.logits_processor = (
+            [
+                NoBadWordsLogitsProcessor(
+                    [[word_idx] for word_idx in self.tokenizer.convert_tokens_to_ids(['#', 'Ġ#', '/*', 'Ġ/*'])],
+                    self.tokenizer.eos_token_id
+                )
+            ]
+            if block_comments
+            else None
+        )
+
+    def invoke(self, prompt: str) -> str:
+        input_ids = self.tokenizer(
+            prompt, truncation=True, return_attention_mask=False, return_tensors="pt"
+        ).input_ids.to(self.model.device)
+        input_ids_len = input_ids.shape[1]
+        with torch.no_grad():
+            generated_ids = self.model.generate(
+                input_ids,
+                do_sample=True,
+                num_return_sequences=1,
+                temperature=0.2,
+                max_length=min(input_ids_len + 128, self.max_length),
+                pad_token_id=50256,
+                top_p=0.95,
+                use_cache=True,
+                logits_processor=self.logits_processor
+            )
+        generated_text = self.tokenizer.decode(
+            generated_ids[0, input_ids_len:],
+            skip_special_tokens=True
+        )
+        return generated_text
+
+    def assemble_infilling_prompt(self, prefix: str, suffix: str, reverse: bool = False) -> str:
+        if reverse:
+            return suffix + "\n\n" + prefix
+        else:
+            raise NotImplementedError()
+
+
+class MixtralModel(ModelWrapper):
+    def __init__(self, model_name, max_length, block_comments=False):
+        assert model_name.startswith("mistralai/Mixtral")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.max_length = max_length
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_name, torch_dtype=torch.float16, device_map="auto"
+        )
+        self.logits_processor = (
+            [
+                NoBadWordsLogitsProcessor(
+                    [[word_idx] for word_idx in self.tokenizer.convert_tokens_to_ids(['▁#', '▁/*'])],
+                    self.tokenizer.eos_token_id
+                )
+            ]
+            if block_comments
+            else None
+        )
+
+    def invoke(self, prompt: str) -> str:
+        input_ids = self.tokenizer(
+            prompt, truncation=True, return_attention_mask=False, return_tensors="pt"
+        ).input_ids.to(self.model.device)
+        input_ids_len = input_ids.shape[1]
+        with torch.no_grad():
+            generated_ids = self.model.generate(
+                input_ids,
+                do_sample=True,
+                num_return_sequences=1,
+                temperature=0.2,
+                max_length=min(input_ids_len + 128, self.max_length),
+                top_p=0.95,
+                use_cache=True,
+                logits_processor=self.logits_processor
+            )
+        generated_text = self.tokenizer.decode(
+            generated_ids[0, input_ids_len:],
+            skip_special_tokens=True
+        )
+        return generated_text
+
+    def assemble_infilling_prompt(self, prefix: str, suffix: str, reverse: bool = False) -> str:
+        if reverse:
+            return suffix + "\n\n" + prefix
+        else:
+            raise NotImplementedError()
+
+
+class WizardModel(ModelWrapper):
+    def __init__(self, model_name, max_length, block_comments=False):
+        assert model_name.startswith("WizardLM/WizardCoder")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer.model_max_length = max_length
+        self.max_length = max_length
+        device = torch.device("cuda")
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_name, torch_dtype=torch.float16
+        ).to(device)
+        self.logits_processor = (
+            [
+                NoBadWordsLogitsProcessor(
+                    [[word_idx] for word_idx in self.tokenizer.convert_tokens_to_ids(['#', 'Ġ#', '/*', 'Ġ/*'])],
+                    self.tokenizer.eos_token_id
+                )
+            ]
+            if block_comments
+            else None
+        )
+
+    def invoke(self, prompt: str) -> str:
+        input_ids = self.tokenizer(
+            prompt, truncation=True, return_attention_mask=False, return_tensors="pt"
+        ).input_ids.to(self.model.device)
+        input_ids_len = input_ids.shape[1]
+        with torch.no_grad():
+            generated_ids = self.model.generate(
+                input_ids,
+                do_sample=True,
+                num_return_sequences=1,
+                temperature=0.2,
+                max_length=min(input_ids_len + 128, self.max_length),
+                top_p=0.95,
+                use_cache=True,
+                logits_processor=self.logits_processor
+            )
+        generated_text = self.tokenizer.decode(
+            generated_ids[0, input_ids_len:],
+            skip_special_tokens=True
+        )
+        return generated_text
+
+    def assemble_infilling_prompt(self, prefix: str, suffix: str, reverse: bool = False) -> str:
+        if reverse:
+            return "<fim_prefix>" + "<fim_suffix>" + suffix + "<fim_middle>" + prefix
+        else:
+            return "<fim_prefix>" + prefix + "<fim_suffix>" + suffix + "<fim_middle>"
+
+
 def build_model(args: Namespace) -> ModelWrapper:
     if args.model_name.startswith("codellama/CodeLlama"):
         model_wrapper = CodeLlama(args.model_name, 4096, args.block_comments)
@@ -350,6 +500,12 @@ def build_model(args: Namespace) -> ModelWrapper:
         model_wrapper = StarcoderModel(args.model_name, 2048, args.block_comments)
     elif args.model_name.startswith("deepseek-ai/deepseek"):
         model_wrapper = DeepseekModel(args.model_name, 4096, args.block_comments)
+    elif args.model_name.startswith("microsoft/phi"):
+        model_wrapper = PhiModel(args.model_name, 2048, args.block_comments)
+    elif args.model_name.startswith("mistralai/Mixtral"):
+        model_wrapper = MixtralModel(args.model_name, 4096, args.block_comments)
+    elif args.model_name.startswith("WizardLM/WizardCoder"):
+        model_wrapper = WizardModel(args.model_name, 2048, args.block_comments)
     else:
         raise ValueError(args.model_name)
     return model_wrapper
