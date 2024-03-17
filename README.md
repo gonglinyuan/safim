@@ -248,12 +248,6 @@ and `results_api/NAME_OF_YOUR_MODEL-fim-tb.jsonl` can be submitted to
 [https://safimbenchmark.com/submit](https://safimbenchmark.com/submit) to put your model on the leaderboard. Note that
 this page requires login using your Google account.
 
-## Copyright Information
-
-The SAFIM benchmark is partially derived from problem descriptions and code solutions from
-[https://codeforces.com](https://codeforces.com). According to the license of CodeForces, you may publish the texts of
-Codeforces problems in any open sources, but you must preserve a direct link to the site.
-
 ## Citation
 
 ```
@@ -269,3 +263,12 @@ Codeforces problems in any open sources, but you must preserve a direct link to 
     month=mar
 }
 ```
+
+## Acknowledgement
+
+The SAFIM benchmark is partially derived from problem descriptions and code solutions from
+[https://codeforces.com](https://codeforces.com). According to the license of CodeForces, you may publish the texts of
+Codeforces problems in any open sources, but you must preserve a direct link to the site.
+
+The evaluation of SAFIM is partially based on [ExecEval](https://github.com/ntunlp/ExecEval) framework, detailed in paper
+[xCodeEval: A Large Scale Multilingual Multitask Benchmark for Code Understanding, Generation, Translation and Retrieval](https://arxiv.org/abs/2303.03004).
