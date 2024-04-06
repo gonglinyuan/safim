@@ -120,6 +120,9 @@ def run_test(problem, completion):
     result = execeval.execute_code(
         LANG_TO_COMPILER[problem['lang']], code, problem['unit_tests'], task_id=problem['task_id']
     )[0]
+    if not (isinstance(result, list) and isinstance(result[0], dict)):
+        print(result)
+        return "COMPILATION_ERROR", False
     for o in result:
         if o['result'] is not None and len(o['result']) > 1000:
             o['result'] = o['result'][:1000]
