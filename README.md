@@ -169,7 +169,7 @@ python generate.py \
   cache/NAME_OF_YOUR_MODEL.json \
   outputs_block/NAME_OF_YOUR_MODEL-fim-tb.jsonl \
   infilling \
-  --post_processors truncate_block
+  --post_processors truncate_line_until_block
 ```
 
 For Control-Flow Expression Completion:
