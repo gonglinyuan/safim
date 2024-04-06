@@ -393,6 +393,7 @@ class MixtralModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
         assert model_name.startswith("mistralai/Mixtral")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer.model_max_length = max_length
         self.max_length = max_length
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name, torch_dtype=torch.float16, device_map="auto"
@@ -440,6 +441,10 @@ class MixtralModel(ModelWrapper):
 class WizardModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
         assert model_name.startswith("WizardLM/WizardCoder")
+        if model_name == "WizardLM/WizardCoder-33B-V1.1":
+            self.use_deepseek_base = True
+        else:
+            self.use_deepseek_base = False
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.tokenizer.model_max_length = max_length
         self.max_length = max_length
@@ -481,10 +486,116 @@ class WizardModel(ModelWrapper):
         return generated_text
 
     def assemble_infilling_prompt(self, prefix: str, suffix: str, reverse: bool = False) -> str:
-        if reverse:
-            return "<fim_prefix>" + "<fim_suffix>" + suffix + "<fim_middle>" + prefix
+        if self.use_deepseek_base:
+            if reverse:
+                return "<｜fim▁begin｜>" + "<｜fim▁hole｜>" + suffix + "<｜fim▁end｜>" + prefix
+            else:
+                return "<｜fim▁begin｜>" + prefix + "<｜fim▁hole｜>" + suffix + "<｜fim▁end｜>"
         else:
-            return "<fim_prefix>" + prefix + "<fim_suffix>" + suffix + "<fim_middle>"
+            if reverse:
+                return "<fim_prefix>" + "<fim_suffix>" + suffix + "<fim_middle>" + prefix
+            else:
+                return "<fim_prefix>" + prefix + "<fim_suffix>" + suffix + "<fim_middle>"
+
+
+class SantacoderModel(ModelWrapper):
+    def __init__(self, model_name, max_length, block_comments=False):
+        assert model_name.startswith("bigcode/santacoder")
+        if ":" in model_name:
+            model_name, revision = model_name.split(":")
+        else:
+            revision = None
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer.model_max_length = max_length
+        self.max_length = max_length
+        device = torch.device("cuda")
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            revision=revision,
+            trust_remote_code=True,
+            torch_dtype=torch.float32
+        ).to(device)
+        self.logits_processor = (
+            [
+                NoBadWordsLogitsProcessor(
+                    [[word_idx] for word_idx in self.tokenizer.convert_tokens_to_ids(['#', 'Ġ#', '/*', 'Ġ/*'])],
+                    self.tokenizer.eos_token_id
+                )
+            ]
+            if block_comments
+            else None
+        )
+
+    def invoke(self, prompt: str) -> str:
+        input_ids = self.tokenizer(
+            prompt, truncation=True, return_tensors="pt"
+        ).input_ids.to(self.model.device)
+        input_ids_len = input_ids.shape[1]
+        with torch.no_grad():
+            generated_ids = self.model.generate(
+                input_ids,
+                do_sample=True,
+                num_return_sequences=1,
+                temperature=0.2,
+                max_length=min(input_ids_len + 128, self.max_length),
+                top_p=0.95,
+                pad_token_id=self.tokenizer.unk_token_id,
+                logits_processor=self.logits_processor
+            )
+        generated_text = self.tokenizer.decode(
+            generated_ids[0, input_ids_len:],
+            skip_special_tokens=True
+        )
+        return generated_text
+
+    def assemble_infilling_prompt(self, prefix: str, suffix: str, reverse: bool = False) -> str:
+        if reverse:
+            return "<fim-prefix>" + "<fim-suffix>" + suffix + "<fim-middle>" + prefix
+        else:
+            return "<fim-prefix>" + prefix + "<fim-suffix>" + suffix + "<fim-middle>"
+
+
+class MagicCoderModel(ModelWrapper):
+    def __init__(self, model_name, max_length, block_comments=False):
+        assert model_name.startswith("ise-uiuc/Magicoder")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer.model_max_length = max_length
+        self.pipeline = transformers.pipeline(
+            model=model_name,
+            tokenizer=self.tokenizer,
+            task="text-generation",
+            torch_dtype=torch.bfloat16,
+            device_map="auto",
+        )
+        self.logits_processor = (
+            [
+                NoBadWordsLogitsProcessor(
+                    [[word_idx] for word_idx in self.tokenizer.convert_tokens_to_ids(['#', 'Ġ#', '/*', 'Ġ/*'])],
+                    self.tokenizer.eos_token_id
+                )
+            ]
+            if block_comments
+            else None
+        )
+
+    def invoke(self, prompt: str) -> str:
+        generated_text = self.pipeline(
+            prompt,
+            do_sample=True,
+            num_return_sequences=1,
+            temperature=0.2,
+            max_new_tokens=128,
+            top_p=0.95,
+            handle_long_generation="hole",
+            logits_processor=self.logits_processor
+        )[0]["generated_text"]
+        return generated_text[len(prompt):]
+
+    def assemble_infilling_prompt(self, prefix: str, suffix: str, reverse: bool = False) -> str:
+        if reverse:
+            return suffix + "\n\n" + prefix
+        else:
+            raise NotImplementedError()
 
 
 def build_model(args: Namespace) -> ModelWrapper:
@@ -506,6 +617,10 @@ def build_model(args: Namespace) -> ModelWrapper:
         model_wrapper = MixtralModel(args.model_name, 4096, args.block_comments)
     elif args.model_name.startswith("WizardLM/WizardCoder"):
         model_wrapper = WizardModel(args.model_name, 2048, args.block_comments)
+    elif args.model_name.startswith("bigcode/santacoder"):
+        model_wrapper = SantacoderModel(args.model_name, 2048, args.block_comments)
+    elif args.model_name.startswith("ise-uiuc/Magicoder"):
+        model_wrapper = MagicCoderModel(args.model_name, 4096, args.block_comments)
     else:
         raise ValueError(args.model_name)
     return model_wrapper
