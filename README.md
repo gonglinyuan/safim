@@ -248,6 +248,55 @@ and `results_api/NAME_OF_YOUR_MODEL-fim-tb.jsonl` can be submitted to
 [https://safimbenchmark.com/submit](https://safimbenchmark.com/submit) to put your model on the leaderboard. Note that
 this page requires login using your Google account.
 
+
+## Impact of Data Contamination
+
+SAFIM is sourced from code submitted from April 2022 to January 2023. The training data of some LLMs evaluated in our
+paper has overlapping date ranges with SAFIM. To assess the impact of potential data contamination on our evaluation
+results, we collected a new test dataset for the algorithmic block completion task based on Codeforces contests,
+indicated as `block_v2` in our [Huggingface dataset](https://huggingface.co/datasets/gonglinyuan/safim). Here is an example of running
+DeepSeek-Coder-1.3B (with training data cutoff Feb 2023, overlapping with the date range of SAFIM) using
+Prefix-Suffix-Middle infilling prompt on this new test set. This experiment requires a single GPU.
+
+Generate:
+
+```bash
+mkdir -p cache outputs_block_v2
+python generate.py \
+  deepseek-ai/deepseek-coder-1.3b-base \
+  block_v2 \
+  cache/deepseek-coder-1.3b-base.json \
+  outputs_block_v2/deepseek-coder-1.3b-base-fim-tb.jsonl \
+  infilling \
+  --post_processors truncate_line_until_block
+```
+
+Evaluation:
+
+```bash
+mkdir -p results_block_v2
+python evaluate.py \
+  block_v2 \
+  outputs_block_v2/deepseek-coder-1.3b-base-fim-tb.jsonl \
+  results_block_v2/deepseek-coder-1.3b-base-fim-tb.jsonl
+```
+
+Show results:
+
+```bash
+python show_detailed_results.py \
+  block_v2 \
+  results_block_v2/deepseek-coder-1.3b-base-fim-tb.jsonl
+```
+
+The expected outcome is:
+
+```
+deepseek-coder-1.3b-base-fim-tb,41.194030,53.745928,48.534483,54.424779,46.051192,76,161,136,30,54,1659,350
+```
+
+So the Pass@1 is 46.05%. In [our paper](https://arxiv.org/abs/2403.04814), we discussed these experimental results in Appendix A.9 "Further Analysis on Data Contamination".
+
 ## Citation
 
 ```
