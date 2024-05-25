@@ -8,7 +8,7 @@ git checkout 3c24aa9365985830421a3a7b6791b415961ea770 || exit
 cd ..
 git clone https://github.com/tree-sitter/tree-sitter-cpp
 cd tree-sitter-cpp || exit
-git checkout 03fa93db133d6048a77d4de154a7b17ea8b9d076
+git checkout -f 03fa93db133d6048a77d4de154a7b17ea8b9d076
 cd ..
 git clone https://github.com/tree-sitter/tree-sitter-c-sharp
 cd tree-sitter-c-sharp || exit
