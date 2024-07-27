@@ -69,6 +69,56 @@ class CodeLlama(ModelWrapper):
             return "<PRE>" + prefix + " <SUF>" + suffix + " <MID>"
 
 
+class CodeLlamaFromFile(ModelWrapper):
+    def __init__(self, model_name, max_length, block_comments=False):
+        self.tokenizer = transformers.LlamaTokenizer.from_pretrained(model_name, use_fast=False)
+        self.tokenizer.model_max_length = max_length
+        self.max_length = max_length
+        config = transformers.LlamaConfig.from_pretrained(model_name, from_safetensors=True)
+        self.model = transformers.LlamaForCausalLM.from_pretrained(
+            model_name,
+            config=config,
+            torch_dtype=torch.float16,
+        )
+        self.logits_processor = (
+            [
+                NoBadWordsLogitsProcessor(
+                    [[word_idx] for word_idx in self.tokenizer.convert_tokens_to_ids(["#", "▁#", "/*", "▁/*"])],
+                    self.tokenizer.eos_token_id
+                )
+            ]
+            if block_comments
+            else None
+        )
+
+    def invoke(self, prompt: str) -> str:
+        input_ids = self.tokenizer(
+            prompt, truncation=True, return_tensors="pt"
+        ).input_ids.to(self.model.device)
+        input_ids_len = input_ids.shape[1]
+        with torch.no_grad():
+            generated_ids = self.model.generate(
+                input_ids,
+                do_sample=True,
+                num_return_sequences=1,
+                temperature=0.2,
+                max_length=min(input_ids_len + 128, self.max_length),
+                top_p=0.95,
+                logits_processor=self.logits_processor
+            )
+        generated_text = self.tokenizer.decode(
+            generated_ids[0, input_ids_len:],
+            skip_special_tokens=True
+        )
+        return generated_text
+
+    def assemble_infilling_prompt(self, prefix: str, suffix: str, reverse: bool = False) -> str:
+        if reverse:
+            return "<PRE>" + " <SUF>" + suffix + " <MID>" + prefix
+        else:
+            return "<PRE>" + prefix + " <SUF>" + suffix + " <MID>"
+
+
 class Incoder(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
         assert model_name.startswith("facebook/incoder")
@@ -622,5 +672,5 @@ def build_model(args: Namespace) -> ModelWrapper:
     elif args.model_name.startswith("ise-uiuc/Magicoder"):
         model_wrapper = MagicCoderModel(args.model_name, 4096, args.block_comments)
     else:
-        raise ValueError(args.model_name)
+        model_wrapper = CodeLlamaFromFile(args.model_name, 4096, args.block_comments)
     return model_wrapper
