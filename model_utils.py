@@ -75,11 +75,12 @@ class CodeLlamaFromFile(ModelWrapper):
         self.tokenizer.model_max_length = max_length
         self.max_length = max_length
         config = transformers.LlamaConfig.from_pretrained(model_name, from_safetensors=True)
+        device = torch.device("cuda")
         self.model = transformers.LlamaForCausalLM.from_pretrained(
             model_name,
             config=config,
             torch_dtype=torch.float16,
-        )
+        ).to(device)
         self.logits_processor = (
             [
                 NoBadWordsLogitsProcessor(
@@ -104,6 +105,7 @@ class CodeLlamaFromFile(ModelWrapper):
                 temperature=0.2,
                 max_length=min(input_ids_len + 128, self.max_length),
                 top_p=0.95,
+                pad_token_id=self.tokenizer.eos_token_id,
                 logits_processor=self.logits_processor
             )
         generated_text = self.tokenizer.decode(
