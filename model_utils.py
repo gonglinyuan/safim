@@ -112,6 +112,8 @@ class CodeLlamaFromFile(ModelWrapper):
             generated_ids[0, input_ids_len:],
             skip_special_tokens=True
         )
+        if "<EOT>" in generated_text:
+            generated_text = generated_text[:generated_text.index("<EOT>")]
         return generated_text
 
     def assemble_infilling_prompt(self, prefix: str, suffix: str, reverse: bool = False) -> str:
