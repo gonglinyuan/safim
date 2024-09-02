@@ -16,10 +16,11 @@ def handle_example(
     mode: str,
     model_wrapper: ModelWrapper,
     cache: dict,
-    post_processors: Iterable[str]
+    post_processors: Iterable[str],
+    force_overwrite_cache: bool = False
 ):
     prompt = apply_prompt(sample, completion_type, mode, model_wrapper)
-    completion = model_wrapper.invoke_cached(prompt, cache)
+    completion = model_wrapper.invoke_cached(prompt, cache, force_overwrite_cache)
     completion = apply_postprocessors(completion, sample, completion_type, post_processors)
     return {
         "task_id": sample["task_id"],
@@ -36,6 +37,7 @@ def main():
     parser.add_argument("mode", type=str)
     parser.add_argument("--block_comments", action="store_true")
     parser.add_argument("--post_processors", type=str, nargs="+")
+    parser.add_argument("--force_overwrite_cache", action="store_true")
 
     args = parser.parse_args()
 
@@ -51,7 +53,15 @@ def main():
     try:
         for sample in tqdm(load_dataset(args.completion_type)):
             outputs.append(
-                handle_example(sample, args.completion_type, args.mode, model_wrapper, cache, args.post_processors)
+                handle_example(
+                    sample,
+                    args.completion_type,
+                    args.mode,
+                    model_wrapper,
+                    cache,
+                    args.post_processors,
+                    args.force_overwrite_cache
+                )
             )
             if len(outputs) == 10:
                 for o in outputs:

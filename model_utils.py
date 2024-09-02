@@ -13,8 +13,8 @@ class ModelWrapper:
     def invoke(self, prompt: str) -> str:
         raise NotImplementedError()
 
-    def invoke_cached(self, prompt: str, cache: dict) -> str:
-        if prompt not in cache:
+    def invoke_cached(self, prompt: str, cache: dict, force_overwrite_cache: bool = False) -> str:
+        if prompt not in cache or force_overwrite_cache:
             cache[prompt] = self.invoke(prompt)
         return cache[prompt]
 
