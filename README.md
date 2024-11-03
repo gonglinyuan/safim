@@ -16,27 +16,18 @@ results.
 
 ## Environment Setup
 
-Python version: 3.8.12
-
-CUDA version: 11.7
-
-Docker CE version: 24.0.7
-
-Install dependencies:
-
 ```bash
-python -m pip install \
-torch==1.13.0+cu117 torchvision==0.14.0+cu117 torchaudio==0.13.0 \
---extra-index-url https://download.pytorch.org/whl/cu117
-python -m pip install \
-Jinja2==3.1.2 openai==0.28.1 tiktoken==0.5.2 transformers==4.36.0 \
-tqdm==4.64.1 tree-sitter==0.20.4 requests==2.28.1 datasets==2.18.0
+conda create -n safim python=3.10
+conda install -n safim pytorch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 pytorch-cuda=12.1 -c pytorch -c nvidia
+conda activate safim
+python -m pip install transformers==4.44.2 datasets==2.21.0 accelerate==0.34.2 \
+"numpy<2" tree-sitter==0.20.4 openai==0.28.1 tiktoken==0.5.2
 ```
 
 If you encounter issues with `libstd++`, and you are using a conda environment, you can try this solution:
 
 ```bash
-conda install -n [ENV_NAME] libstdcxx-ng=12.2.0 -c conda-forge
+conda install -n safim libstdcxx-ng=12.2.0 -c conda-forge
 ```
 Build Tree-Sitter parsers:
 
@@ -44,7 +35,7 @@ Build Tree-Sitter parsers:
 bash setup_tree_sitter.bash
 ```
 
-In another terminal, build and run ExecEval daemon:
+In another terminal, build and run ExecEval daemon. We use Docker CE 24.0.7:
 
 ```bash
 git clone https://github.com/ntunlp/ExecEval
