@@ -27,7 +27,6 @@ class ModelWrapper:
 
 class CodeLlama(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
-        assert model_name.startswith("codellama/CodeLlama")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.tokenizer.model_max_length = max_length
         self.pipeline = transformers.pipeline(
@@ -71,7 +70,6 @@ class CodeLlama(ModelWrapper):
 
 class Llama3(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
-        assert model_name.startswith("meta-llama/Llama-3")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.tokenizer.model_max_length = max_length
         self.pipeline = transformers.pipeline(
@@ -115,7 +113,6 @@ class Llama3(ModelWrapper):
 
 class Incoder(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
-        assert model_name.startswith("facebook/incoder")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.max_length = max_length - 128
         device = torch.device("cuda")
@@ -220,7 +217,6 @@ class OpenAIModel(ModelWrapper):
 
 class CodegenModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
-        assert model_name.startswith("Salesforce/codegen")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.max_length = max_length - 128
         device = torch.device("cuda")
@@ -277,7 +273,6 @@ class CodegenModel(ModelWrapper):
 
 class StarcoderModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
-        assert model_name.startswith("bigcode/starcoder") or model_name.startswith("bigcode/tiny_starcoder")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, clean_up_tokenization_spaces=False)
         self.tokenizer.model_max_length = max_length - 128
         self.max_length = max_length
@@ -328,7 +323,6 @@ class StarcoderModel(ModelWrapper):
 
 class DeepseekModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
-        assert model_name.startswith("deepseek-ai/deepseek")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.tokenizer.model_max_length = max_length - 128
         self.max_length = max_length
@@ -383,7 +377,6 @@ class DeepseekModel(ModelWrapper):
 
 class PhiModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
-        assert model_name.startswith("microsoft/phi")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
         self.max_length = max_length - 128
         device = torch.device("cuda")
@@ -435,7 +428,6 @@ class PhiModel(ModelWrapper):
 
 class MixtralModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
-        assert model_name.startswith("mistralai/Mixtral")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.tokenizer.model_max_length = max_length - 128
         self.max_length = max_length
@@ -484,7 +476,6 @@ class MixtralModel(ModelWrapper):
 
 class WizardModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
-        assert model_name.startswith("WizardLM/WizardCoder")
         if model_name == "WizardLM/WizardCoder-33B-V1.1":
             self.use_deepseek_base = True
         else:
@@ -544,7 +535,6 @@ class WizardModel(ModelWrapper):
 
 class SantacoderModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
-        assert model_name.startswith("bigcode/santacoder")
         if ":" in model_name:
             model_name, revision = model_name.split(":")
         else:
@@ -601,7 +591,6 @@ class SantacoderModel(ModelWrapper):
 
 class MagicCoderModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
-        assert model_name.startswith("ise-uiuc/Magicoder")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.tokenizer.model_max_length = max_length - 128
         self.pipeline = transformers.pipeline(
@@ -646,6 +635,7 @@ def build_model(args: Namespace) -> ModelWrapper:
     if args.load_from_file is None:
         model_name_or_path = args.model_name
     else:
+        print(f"Loading model from {args.load_from_file}")
         model_name_or_path = args.load_from_file
     if args.model_name.startswith("codellama/CodeLlama"):
         model_wrapper = CodeLlama(model_name_or_path, 4096, args.block_comments)
