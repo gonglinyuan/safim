@@ -277,8 +277,8 @@ class CodegenModel(ModelWrapper):
 
 class StarcoderModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
-        assert model_name.startswith("bigcode/starcoder")
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        assert model_name.startswith("bigcode/starcoder") or model_name.startswith("bigcode/tiny_starcoder")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, clean_up_tokenization_spaces=False)
         self.tokenizer.model_max_length = max_length - 128
         self.max_length = max_length
         device = torch.device("cuda")
@@ -655,6 +655,8 @@ def build_model(args: Namespace) -> ModelWrapper:
         model_wrapper = CodegenModel(args.model_name, 2048, args.block_comments)
     elif args.model_name.startswith("bigcode/starcoder"):
         model_wrapper = StarcoderModel(args.model_name, 2048, args.block_comments)
+    elif args.model_name.startswith("bigcode/tiny_starcoder"):
+        model_wrapper = StarcoderModel(args.model_name, 8192, args.block_comments)
     elif args.model_name.startswith("deepseek-ai/deepseek"):
         model_wrapper = DeepseekModel(args.model_name, 4096, args.block_comments)
     elif args.model_name.startswith("microsoft/phi"):
