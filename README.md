@@ -38,7 +38,6 @@ If you encounter issues with `libstd++`, and you are using a conda environment, 
 ```bash
 conda install -n [ENV_NAME] libstdcxx-ng=12.2.0 -c conda-forge
 ```
-
 Build Tree-Sitter parsers:
 
 ```bash
@@ -195,7 +194,7 @@ python generate.py \
   cache/NAME_OF_YOUR_MODEL.json \
   outputs_api/NAME_OF_YOUR_MODEL-fim-ta.jsonl \
   infilling \
-  --post_processors truncate_api
+  --post_processors truncate_api_call
 ```
 
 ### Prompts and Post-Processing
