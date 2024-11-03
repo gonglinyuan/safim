@@ -34,6 +34,7 @@ def main():
     parser.add_argument("cache_path", type=str)
     parser.add_argument("output_path", type=str)
     parser.add_argument("mode", type=str)
+    parser.add_argument("--load_from_file", type=str)
     parser.add_argument("--block_comments", action="store_true")
     parser.add_argument("--post_processors", type=str, nargs="+")
 

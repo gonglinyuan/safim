@@ -643,32 +643,36 @@ class MagicCoderModel(ModelWrapper):
 
 
 def build_model(args: Namespace) -> ModelWrapper:
+    if args.load_from_file is None:
+        model_name_or_path = args.model_name
+    else:
+        model_name_or_path = args.load_from_file
     if args.model_name.startswith("codellama/CodeLlama"):
-        model_wrapper = CodeLlama(args.model_name, 4096, args.block_comments)
+        model_wrapper = CodeLlama(model_name_or_path, 4096, args.block_comments)
     elif args.model_name.startswith("meta-llama/Llama-3"):
-        model_wrapper = Llama3(args.model_name, 4096, args.block_comments)
+        model_wrapper = Llama3(model_name_or_path, 4096, args.block_comments)
     elif args.model_name.startswith("facebook/incoder"):
-        model_wrapper = Incoder(args.model_name, 2048, args.block_comments)
+        model_wrapper = Incoder(model_name_or_path, 2048, args.block_comments)
     elif args.model_name.startswith("gpt-"):
-        model_wrapper = OpenAIModel(args.model_name, 4096 - 32)
+        model_wrapper = OpenAIModel(model_name_or_path, 4096 - 32)
     elif args.model_name.startswith("Salesforce/codegen"):
-        model_wrapper = CodegenModel(args.model_name, 2048, args.block_comments)
+        model_wrapper = CodegenModel(model_name_or_path, 2048, args.block_comments)
     elif args.model_name.startswith("bigcode/starcoder"):
-        model_wrapper = StarcoderModel(args.model_name, 2048, args.block_comments)
+        model_wrapper = StarcoderModel(model_name_or_path, 2048, args.block_comments)
     elif args.model_name.startswith("bigcode/tiny_starcoder"):
-        model_wrapper = StarcoderModel(args.model_name, 8192, args.block_comments)
+        model_wrapper = StarcoderModel(model_name_or_path, 8192, args.block_comments)
     elif args.model_name.startswith("deepseek-ai/deepseek"):
-        model_wrapper = DeepseekModel(args.model_name, 4096, args.block_comments)
+        model_wrapper = DeepseekModel(model_name_or_path, 4096, args.block_comments)
     elif args.model_name.startswith("microsoft/phi"):
-        model_wrapper = PhiModel(args.model_name, 2048, args.block_comments)
+        model_wrapper = PhiModel(model_name_or_path, 2048, args.block_comments)
     elif args.model_name.startswith("mistralai/Mixtral"):
-        model_wrapper = MixtralModel(args.model_name, 4096, args.block_comments)
+        model_wrapper = MixtralModel(model_name_or_path, 4096, args.block_comments)
     elif args.model_name.startswith("WizardLM/WizardCoder"):
-        model_wrapper = WizardModel(args.model_name, 2048, args.block_comments)
+        model_wrapper = WizardModel(model_name_or_path, 2048, args.block_comments)
     elif args.model_name.startswith("bigcode/santacoder"):
-        model_wrapper = SantacoderModel(args.model_name, 2048, args.block_comments)
+        model_wrapper = SantacoderModel(model_name_or_path, 2048, args.block_comments)
     elif args.model_name.startswith("ise-uiuc/Magicoder"):
-        model_wrapper = MagicCoderModel(args.model_name, 4096, args.block_comments)
+        model_wrapper = MagicCoderModel(model_name_or_path, 4096, args.block_comments)
     else:
         raise ValueError(args.model_name)
     return model_wrapper
