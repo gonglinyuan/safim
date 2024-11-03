@@ -69,11 +69,55 @@ class CodeLlama(ModelWrapper):
             return "<PRE>" + prefix + " <SUF>" + suffix + " <MID>"
 
 
+class Llama3(ModelWrapper):
+    def __init__(self, model_name, max_length, block_comments=False):
+        assert model_name.startswith("meta-llama/Llama-3")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer.model_max_length = max_length
+        self.pipeline = transformers.pipeline(
+            "text-generation",
+            model=model_name,
+            tokenizer=self.tokenizer,
+            torch_dtype=torch.float16,
+            device_map="auto",
+        )
+        self.logits_processor = (
+            [
+                NoBadWordsLogitsProcessor(
+                    [[word_idx] for word_idx in self.tokenizer.convert_tokens_to_ids(["#", "Ġ#", "/*", "Ġ/*"])],
+                    self.tokenizer.eos_token_id
+                )
+            ]
+            if block_comments
+            else None
+        )
+
+    def invoke(self, prompt: str) -> str:
+        generated_text = self.pipeline(
+            prompt,
+            do_sample=True,
+            num_return_sequences=1,
+            temperature=0.2,
+            max_new_tokens=128,
+            eos_token_id=self.tokenizer.eos_token_id,
+            top_p=0.95,
+            handle_long_generation="hole",
+            logits_processor=self.logits_processor
+        )[0]["generated_text"]
+        return generated_text[len(prompt):]
+
+    def assemble_infilling_prompt(self, prefix: str, suffix: str, reverse: bool = False) -> str:
+        if reverse:
+            return suffix + "\n\n" + prefix
+        else:
+            raise NotImplementedError()
+
+
 class Incoder(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
         assert model_name.startswith("facebook/incoder")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.max_length = max_length
+        self.max_length = max_length - 128
         device = torch.device("cuda")
         if model_name.endswith("6B"):
             self.model = AutoModelForCausalLM.from_pretrained(
@@ -178,7 +222,7 @@ class CodegenModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
         assert model_name.startswith("Salesforce/codegen")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.max_length = max_length
+        self.max_length = max_length - 128
         device = torch.device("cuda")
         self.tokenizer.padding_side = "left"
         self.tokenizer.pad_token_id = 50256
@@ -235,7 +279,7 @@ class StarcoderModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
         assert model_name.startswith("bigcode/starcoder")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.tokenizer.model_max_length = max_length
+        self.tokenizer.model_max_length = max_length - 128
         self.max_length = max_length
         device = torch.device("cuda")
         self.model = AutoModelForCausalLM.from_pretrained(
@@ -286,7 +330,7 @@ class DeepseekModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
         assert model_name.startswith("deepseek-ai/deepseek")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.tokenizer.model_max_length = max_length
+        self.tokenizer.model_max_length = max_length - 128
         self.max_length = max_length
         device = torch.device("cuda")
         self.model = AutoModelForCausalLM.from_pretrained(
@@ -341,7 +385,7 @@ class PhiModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
         assert model_name.startswith("microsoft/phi")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-        self.max_length = max_length
+        self.max_length = max_length - 128
         device = torch.device("cuda")
         self.tokenizer.padding_side = "left"
         self.tokenizer.pad_token_id = 50256
@@ -393,7 +437,7 @@ class MixtralModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
         assert model_name.startswith("mistralai/Mixtral")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.tokenizer.model_max_length = max_length
+        self.tokenizer.model_max_length = max_length - 128
         self.max_length = max_length
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name, torch_dtype=torch.float16, device_map="auto"
@@ -446,7 +490,7 @@ class WizardModel(ModelWrapper):
         else:
             self.use_deepseek_base = False
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.tokenizer.model_max_length = max_length
+        self.tokenizer.model_max_length = max_length - 128
         self.max_length = max_length
         device = torch.device("cuda")
         self.model = AutoModelForCausalLM.from_pretrained(
@@ -506,7 +550,7 @@ class SantacoderModel(ModelWrapper):
         else:
             revision = None
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.tokenizer.model_max_length = max_length
+        self.tokenizer.model_max_length = max_length - 128
         self.max_length = max_length
         device = torch.device("cuda")
         self.model = AutoModelForCausalLM.from_pretrained(
@@ -559,7 +603,7 @@ class MagicCoderModel(ModelWrapper):
     def __init__(self, model_name, max_length, block_comments=False):
         assert model_name.startswith("ise-uiuc/Magicoder")
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.tokenizer.model_max_length = max_length
+        self.tokenizer.model_max_length = max_length - 128
         self.pipeline = transformers.pipeline(
             model=model_name,
             tokenizer=self.tokenizer,
@@ -601,6 +645,8 @@ class MagicCoderModel(ModelWrapper):
 def build_model(args: Namespace) -> ModelWrapper:
     if args.model_name.startswith("codellama/CodeLlama"):
         model_wrapper = CodeLlama(args.model_name, 4096, args.block_comments)
+    elif args.model_name.startswith("meta-llama/Llama-3"):
+        model_wrapper = Llama3(args.model_name, 4096, args.block_comments)
     elif args.model_name.startswith("facebook/incoder"):
         model_wrapper = Incoder(args.model_name, 2048, args.block_comments)
     elif args.model_name.startswith("gpt-"):
