@@ -131,4 +131,4 @@ def run_test(problem, completion):
 
 def build_execeval(args: Namespace):
     global execeval
-    execeval = APICommunication(server_url=f"http://localhost:{args.port}")
+    execeval = APICommunication(server_url=f"http://{args.host}:{args.port}")

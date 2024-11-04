@@ -53,6 +53,7 @@ def main():
     parser.add_argument("completion_type", type=str)
     parser.add_argument("completion_path", type=str)
     parser.add_argument("output_path", type=str)
+    parser.add_argument("--host", type=str, default="localhost")
     parser.add_argument("--port", type=int, default=5000)
     parser.add_argument("--lang", type=str)
     args = parser.parse_args()
