@@ -56,6 +56,7 @@ def main():
     parser.add_argument("--host", type=str, default="localhost")
     parser.add_argument("--port", type=int, default=5000)
     parser.add_argument("--lang", type=str)
+    parser.add_argument("--compiler", type=str)
     args = parser.parse_args()
 
     build_execeval(args)
@@ -74,7 +75,7 @@ def main():
                     result = "PASSED"
                     passed = True
                 else:
-                    result, passed = run_test(problem, completion)
+                    result, passed = run_test(problem, completion, args.compiler)
             else:
                 if syntax_match(completion['completion'], problem["ground_truth"], problem["lang"]):
                     result = "EXACT_MATCH"

@@ -113,12 +113,14 @@ LANG_TO_COMPILER = {
 execeval: APICommunication = None
 
 
-def run_test(problem, completion):
+def run_test(problem, completion, compiler=None):
     global execeval
     assert problem['task_id'] == completion['task_id']
     code = problem['eval_prompt'].replace("{{completion}}", completion['completion'])
+    if compiler is None:
+        compiler = LANG_TO_COMPILER[problem['lang']]
     result = execeval.execute_code(
-        LANG_TO_COMPILER[problem['lang']], code, problem['unit_tests'], task_id=problem['task_id']
+        compiler, code, problem['unit_tests'], task_id=problem['task_id']
     )[0]
     if not (isinstance(result, list) and isinstance(result[0], dict)):
         print(result)
