@@ -54,6 +54,7 @@ def main():
     parser.add_argument("completion_path", type=str)
     parser.add_argument("output_path", type=str)
     parser.add_argument("--port", type=int, default=5000)
+    parser.add_argument("--lang", type=str)
     args = parser.parse_args()
 
     build_execeval(args)
@@ -61,7 +62,7 @@ def main():
     completions = {completion["task_id"]: completion for completion in stream_jsonl(args.completion_path)}
     pass_cnt, total = 0, 0
     results = []
-    for problem in tqdm(load_dataset(args.completion_type)):
+    for problem in tqdm(load_dataset(args.completion_type, args.lang)):
         if problem["task_id"] not in completions:
             result = "EMPTY"
             passed = False

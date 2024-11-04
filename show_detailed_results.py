@@ -11,9 +11,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("completion_type", type=str)
     parser.add_argument("result_path", type=str)
+    parser.add_argument("--lang", type=str)
     args = parser.parse_args()
 
-    problems = load_dataset(args.completion_type)
+    problems = load_dataset(args.completion_type, args.lang)
     problem_to_lang = {problem["task_id"]: problem["lang"] for problem in problems}
 
     pass_cnt, total = defaultdict(int), defaultdict(int)

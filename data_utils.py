@@ -22,10 +22,11 @@ def stream_jsonl(filename: str) -> Iterable[Dict]:
                     yield json.loads(line)
 
 
-def load_dataset(task):
+def load_dataset(task, lang=None):
     ds = datasets.load_dataset("gonglinyuan/safim", task, split="test")
     lst = []
     for m in ds:
         m["unit_tests"] = json.loads(m["unit_tests"])
-        lst.append(m)
+        if lang is None or m["lang"] == "lang":
+            lst.append(m)
     return lst

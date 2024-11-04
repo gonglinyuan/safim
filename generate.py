@@ -35,6 +35,7 @@ def main():
     parser.add_argument("output_path", type=str)
     parser.add_argument("mode", type=str)
     parser.add_argument("--load_from_file", type=str)
+    parser.add_argument("--lang", type=str)
     parser.add_argument("--block_comments", action="store_true")
     parser.add_argument("--post_processors", type=str, nargs="+")
 
@@ -50,7 +51,7 @@ def main():
 
     outputs = []
     try:
-        for sample in tqdm(load_dataset(args.completion_type)):
+        for sample in tqdm(load_dataset(args.completion_type, args.lang)):
             outputs.append(
                 handle_example(sample, args.completion_type, args.mode, model_wrapper, cache, args.post_processors)
             )
