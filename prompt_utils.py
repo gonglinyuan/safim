@@ -662,6 +662,16 @@ def truncate_api_call(completion):
     return completion
 
 
+def truncate_stop_words(completion):
+    stop_words = ["\nclass", "\ndef", "\n#", "\n@", "\nprint", "\nif", "\n```", "<file_sep>"]
+    min_stop_index = len(completion)
+    for stop_word in stop_words:
+        stop_index = completion.find(stop_word)
+        if stop_index != -1 and stop_index < min_stop_index:
+            min_stop_index = stop_index
+    return completion[:min_stop_index]
+
+
 def apply_prompt(
     sample: dict,
     completion_type: str,
@@ -712,6 +722,8 @@ def apply_postprocessors(
             completion = truncate_control(sample, completion)
         elif post_processor == "truncate_api_call":
             completion = truncate_api_call(completion)
+        elif post_processor == "truncate_stop_words":
+            completion = truncate_stop_words(completion)
         else:
             raise ValueError(post_processor)
     return completion
