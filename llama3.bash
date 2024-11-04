@@ -7,8 +7,8 @@ function run_generation_evaluate_and_show_results {
   local mode=$2
   local post_processor=$3
   local file_suffix=$4
-  local output_file="outputs_${completion_type}}/CodeLlama-${MODEL_CFG}-${file_suffix}.jsonl"
-  local result_file="results_${completion_type}}/CodeLlama-${MODEL_CFG}-${file_suffix}.jsonl"
+  local output_file="outputs_${completion_type}/Llama-3.2-${MODEL_CFG}-${file_suffix}.jsonl"
+  local result_file="results_${completion_type}/Llama-3.2-${MODEL_CFG}-${file_suffix}.jsonl"
 
   if [ ! -f "${output_file}" ]; then
     echo "python generate.py \\
