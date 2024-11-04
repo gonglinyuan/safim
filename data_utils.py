@@ -27,6 +27,6 @@ def load_dataset(task, lang=None):
     lst = []
     for m in ds:
         m["unit_tests"] = json.loads(m["unit_tests"])
-        if lang is None or m["lang"] == "lang":
+        if lang is None or m["lang"] == lang:
             lst.append(m)
     return lst
