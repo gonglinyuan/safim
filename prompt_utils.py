@@ -682,6 +682,8 @@ def apply_prompt(
         prompt = add_instruct(sample, completion_type)
     elif mode == "fewshot":
         prompt = add_instruct_with_fewshot(sample, completion_type)
+    elif mode == "raw":
+        prompt = sample["prompt"]
     else:
         raise ValueError(mode)
     return prompt
