@@ -308,10 +308,11 @@ class StarcoderModel(ModelWrapper):
                 top_p=0.95,
                 logits_processor=self.logits_processor
             )
-        generated_text = self.tokenizer.decode(
-            generated_ids[0, input_ids_len:],
-            skip_special_tokens=True
-        )
+        generated_ids = generated_ids[0, input_ids_len:].tolist()
+        fim_pad_id = self.tokenizer.vocab['<fim_pad>']
+        if fim_pad_id in generated_ids:
+            generated_ids = generated_ids[:generated_ids.index(fim_pad_id)]
+        generated_text = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
         return generated_text
 
     def assemble_infilling_prompt(self, prefix: str, suffix: str, reverse: bool = False) -> str:
