@@ -24,12 +24,12 @@ def stream_jsonl(filename: str) -> Iterable[Dict]:
 
 def load_dataset(task_or_path, lang=None):
     if task_or_path.endswith(".jsonl") or task_or_path.endswith("jsonl.gz"):
-        return list(stream_jsonl(task_or_path))
+        ds = list(stream_jsonl(task_or_path))
     else:
         ds = datasets.load_dataset("gonglinyuan/safim", task_or_path, split="test")
-        lst = []
-        for m in ds:
-            m["unit_tests"] = json.loads(m["unit_tests"])
-            if lang is None or m["lang"] == lang:
-                lst.append(m)
+    lst = []
+    for m in ds:
+        m["unit_tests"] = json.loads(m["unit_tests"])
+        if lang is None or m["lang"] == lang:
+            lst.append(m)
     return lst
