@@ -6,11 +6,14 @@ from ast_utils import ErrorCheckVisitor, get_parser
 from model_utils import ModelWrapper
 
 
-def truncate_to_first_line(code):
+def truncate_to_first_line(code, add_line_break=False):
     lines = code.splitlines()
     for line in lines:
         if line.strip():
-            return line
+            if not add_line_break:
+                return line
+            else:
+                return line + "\n"
     return ""
 
 
@@ -712,6 +715,8 @@ def apply_postprocessors(
             completion = extract_code_from_chat_model(completion, sample["lang"], completion_type)
         elif post_processor == "truncate_line":
             completion = truncate_to_first_line(completion)
+        elif post_processor == "truncate_line_lf":
+            completion = truncate_to_first_line(completion, add_line_break=True)
         elif post_processor == "truncate_fewshot":
             completion = truncate_for_fewshot(completion)
         elif post_processor == "truncate_line_until_parsable":
