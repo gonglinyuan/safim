@@ -463,6 +463,7 @@ PREFIX_FEEDING_TEMPLATE = jinja2.Template(
 COMPLETION_TYPE_REPR = {
     "block": "block",
     "control": "control expression",
+    "control_fixed": "control expression",
     "api": "API function call"
 }
 
