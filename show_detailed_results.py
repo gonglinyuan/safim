@@ -45,6 +45,10 @@ def main():
                     'WRONG_ANSWER', 'MIXED']
     writer = csv.writer(sys.stdout)
     # writer.writerow(['C++', 'Java', 'Python', 'C#', 'All'] + ALL_OUTCOMES)
+    if args.lang is None:
+        all_langs = ['cpp', 'java', 'python', 'csharp', 'all']
+    else:
+        all_langs = [args.lang]
     writer.writerow(
         [os.path.splitext(os.path.basename(args.result_path))[0]]
         + [f"{pass_cnt[lang] / total[lang] * 100:.6f}" for lang in ['cpp', 'java', 'python', 'csharp', 'all']]
