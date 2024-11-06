@@ -51,7 +51,7 @@ def main():
         all_langs = [args.lang]
     writer.writerow(
         [os.path.splitext(os.path.basename(args.result_path))[0]]
-        + [f"{pass_cnt[lang] / total[lang] * 100:.6f}" for lang in ['cpp', 'java', 'python', 'csharp', 'all']]
+        + [f"{pass_cnt[lang] / total[lang] * 100:.6f}" for lang in all_langs]
         + [str(results_cnt[outcome]) for outcome in ALL_OUTCOMES]
     )
 
