@@ -265,9 +265,13 @@ for # TODO: Your code here
     print(c)
 """
 
+FEW_SHOT_PROMPTS[("control_fixed", "python")] = FEW_SHOT_PROMPTS[("control", "python")]
+
 FEW_SHOT_ANSWERS[("control", "python")] = """\
 _ in range(t):
 """
+
+FEW_SHOT_ANSWERS[("control_fixed", "python")] = FEW_SHOT_ANSWERS[("control", "python")]
 
 FEW_SHOT_PROMPTS[("control", "java")] = """\
 Complete the code in java to solve this programming problem:
@@ -297,9 +301,13 @@ public class Main {
 }
 """
 
+FEW_SHOT_PROMPTS[("control_fixed", "java")] = FEW_SHOT_PROMPTS[("control", "java")]
+
 FEW_SHOT_ANSWERS[("control", "java")] = """\
 int i = 0; i < t; i++
 """
+
+FEW_SHOT_ANSWERS[("control_fixed", "java")] = FEW_SHOT_ANSWERS[("control", "java")]
 
 FEW_SHOT_PROMPTS[("control", "cpp")] = """\
 Complete the code in cpp to solve this programming problem:
@@ -327,9 +335,13 @@ int main() {
 }
 """
 
+FEW_SHOT_PROMPTS[("control_fixed", "cpp")] = FEW_SHOT_PROMPTS[("control", "cpp")]
+
 FEW_SHOT_ANSWERS[("control", "cpp")] = """\
 int i = 0; i < t; i++
 """
+
+FEW_SHOT_ANSWERS[("control_fixed", "cpp")] = FEW_SHOT_ANSWERS[("control", "cpp")]
 
 FEW_SHOT_PROMPTS[("control", "csharp")] = """\
 Complete the code in csharp to solve this programming problem:
@@ -357,9 +369,13 @@ class Program {
 }
 """
 
+FEW_SHOT_PROMPTS[("control_fixed", "csharp")] = FEW_SHOT_PROMPTS[("control", "csharp")]
+
 FEW_SHOT_ANSWERS[("control", "csharp")] = """\
 int i = 0; i < t; i++
 """
+
+FEW_SHOT_ANSWERS[("control_fixed", "csharp")] = FEW_SHOT_ANSWERS[("control", "csharp")]
 
 FEW_SHOT_PROMPTS[("api", "python")] = """\
 Complete the code in python:
