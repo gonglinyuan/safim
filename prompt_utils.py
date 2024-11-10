@@ -655,9 +655,14 @@ def truncate_line_until_block(sample, code):
     return "".join(lines)
 
 
-def truncate_control(sample, completion):
+def truncate_control(sample, completion, remove_colon=False):
     if sample["lang"] == "python":
-        return truncate_to_first_line(completion)
+        completion = truncate_to_first_line(completion)
+        if remove_colon:
+            completion = completion.rstrip()
+            if completion.endswith(":"):
+                completion = completion[:-1]
+        return completion
     else:
         depth = 0
         for i, ch in enumerate(completion):
@@ -742,6 +747,8 @@ def apply_postprocessors(
             completion = truncate_line_until_block(sample, completion)
         elif post_processor == "truncate_control":
             completion = truncate_control(sample, completion)
+        elif post_processor == "truncate_control_remove_colon":
+            completion = truncate_control(sample, completion, remove_colon=True)
         elif post_processor == "truncate_api_call":
             completion = truncate_api_call(completion)
         elif post_processor == "truncate_stop_words":
