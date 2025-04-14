@@ -410,7 +410,7 @@ class QwenCoderModel(ModelWrapper):
                     do_sample=True,
                     num_return_sequences=1,
                     temperature=0.2,
-                    max_length=min(input_ids_len + 128, self.max_length),
+                    max_new_tokens=128,
                     top_p=0.95,
                     logits_processor=self.logits_processor,
                     eos_token_id=[151664, 151662, 151659, 151660, 151661, 151662, 151663, 151664, 151645, 151643]
@@ -566,7 +566,7 @@ class WizardModel(ModelWrapper):
                 do_sample=True,
                 num_return_sequences=1,
                 temperature=0.2,
-                max_new_tokens=128,
+                max_length=min(input_ids_len + 128, self.max_length),
                 top_p=0.95,
                 use_cache=True,
                 logits_processor=self.logits_processor
