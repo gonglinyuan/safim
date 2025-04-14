@@ -35,8 +35,11 @@ function run_generation_evaluate_and_show_results {
 
 model_cfg=Qwen2.5-Coder-7B
 
-run_generation_evaluate_and_show_results "api" "left_to_right" "--post_processors truncate_api_call" "l2r-ta"
+run_generation_evaluate_and_show_results "block" "infilling" "--post_processors truncate_line_until_block" "fim-tb"
+run_generation_evaluate_and_show_results "block" "reverse_infilling" "--post_processors truncate_line_until_block" "rfim-tb"
+
+run_generation_evaluate_and_show_results "control_fixed" "infilling" "--post_processors truncate_control_remove_colon" "fim-tcrc"
+run_generation_evaluate_and_show_results "control_fixed" "reverse_infilling" "--post_processors truncate_control_remove_colon" "rfim-tcrc"
+
 run_generation_evaluate_and_show_results "api" "infilling" "--post_processors truncate_api_call" "fim-ta"
 run_generation_evaluate_and_show_results "api" "reverse_infilling" "--post_processors truncate_api_call" "rfim-ta"
-run_generation_evaluate_and_show_results "api" "fewshot" "--post_processors truncate_fewshot truncate_api_call" "few-ta"
-run_generation_evaluate_and_show_results "api" "prefix_feeding" "--block_comments --post_processors truncate_api_call" "pf-bc-ta"
