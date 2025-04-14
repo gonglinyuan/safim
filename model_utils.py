@@ -566,7 +566,7 @@ class WizardModel(ModelWrapper):
                 do_sample=True,
                 num_return_sequences=1,
                 temperature=0.2,
-                max_length=min(input_ids_len + 128, self.max_length),
+                max_new_tokens=128,
                 top_p=0.95,
                 use_cache=True,
                 logits_processor=self.logits_processor
