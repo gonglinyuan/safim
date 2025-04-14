@@ -130,9 +130,9 @@ class Incoder(ModelWrapper):
                 NoBadWordsLogitsProcessor(
                     [[word_idx] for word_idx in self.tokenizer.convert_tokens_to_ids(
                         ['#Ġ', '/*Ġ', 'Ġ#Ġ', 'ĠĠ#Ġ', 'ĠĠ/*Ġ', 'ĠĠĠ#Ġ', 'ĠĠĠ/*Ġ', 'ĠĠĠĠ#Ġ', 'ĠĠĠĠ/*Ġ', 'ĠĠĠĠĠ#Ġ',
-                         'ĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠ/*Ġ', 'ĠĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠĠĠ/*Ġ', 'ĠĠĠĠĠĠĠĠĠ#Ġ',
-                         'ĠĠĠĠĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠĠĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠĠĠĠĠĠĠĠĠ#Ġ',
-                         'ĠĠĠĠĠĠĠĠĠĠĠĠĠĠĠĠ#Ġ']
+                            'ĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠ/*Ġ', 'ĠĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠĠĠ/*Ġ', 'ĠĠĠĠĠĠĠĠĠ#Ġ',
+                            'ĠĠĠĠĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠĠĠĠĠĠĠĠ#Ġ', 'ĠĠĠĠĠĠĠĠĠĠĠĠĠĠ#Ġ',
+                            'ĠĠĠĠĠĠĠĠĠĠĠĠĠĠĠĠ#Ġ']
                     )],
                     self.tokenizer.eos_token_id
                 )
@@ -374,6 +374,62 @@ class DeepseekModel(ModelWrapper):
             return "<｜fim▁begin｜>" + "<｜fim▁hole｜>" + suffix + "<｜fim▁end｜>" + prefix
         else:
             return "<｜fim▁begin｜>" + prefix + "<｜fim▁hole｜>" + suffix + "<｜fim▁end｜>"
+
+
+class QwenCoderModel(ModelWrapper):
+    def __init__(self, model_name, max_length, block_comments=False):
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.tokenizer.model_max_length = max_length - 128
+        self.max_length = max_length
+        device = torch.device("cuda")
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.float16,
+            low_cpu_mem_usage=True
+        ).to(device)
+        self.logits_processor = (
+            [
+                NoBadWordsLogitsProcessor(
+                    [[word_idx] for word_idx in self.tokenizer.convert_tokens_to_ids(['#', 'Ġ#', '/*', 'Ġ/*'])],
+                    self.tokenizer.eos_token_id
+                )
+            ]
+            if block_comments
+            else None
+        )
+
+    def invoke(self, prompt: str) -> str:
+        input_ids = self.tokenizer(
+            prompt, truncation=True, return_tensors="pt"
+        ).input_ids.to(self.model.device)
+        input_ids_len = input_ids.shape[1]
+        with torch.no_grad():
+            try:
+                generated_ids = self.model.generate(
+                    input_ids,
+                    do_sample=True,
+                    num_return_sequences=1,
+                    temperature=0.2,
+                    max_length=min(input_ids_len + 128, self.max_length),
+                    top_p=0.95,
+                    logits_processor=self.logits_processor,
+                    eos_token_id=[151664, 151662, 151659, 151660, 151661, 151662, 151663, 151664, 151645, 151643]
+                    # https://github.com/QwenLM/Qwen2.5-Coder/blob/main/examples/Qwen2.5-Coder-fim.py
+                )
+            except RuntimeError as e:
+                print(e)
+                return ""
+        generated_text = self.tokenizer.decode(
+            generated_ids[0, input_ids_len:],
+            skip_special_tokens=True
+        )
+        return generated_text
+
+    def assemble_infilling_prompt(self, prefix: str, suffix: str, reverse: bool = False) -> str:
+        if reverse:
+            return "<|fim_prefix|>" + "<|fim_suffix|>" + suffix + "<|fim_middle|>" + prefix
+        else:
+            return "<|fim_prefix|>" + prefix + "<|fim_suffix|>" + suffix + "<|fim_middle|>"
 
 
 class PhiModel(ModelWrapper):
@@ -654,6 +710,8 @@ def build_model(args: Namespace) -> ModelWrapper:
         model_wrapper = StarcoderModel(model_name_or_path, 8192, args.block_comments)
     elif args.model_name.startswith("deepseek-ai/deepseek"):
         model_wrapper = DeepseekModel(model_name_or_path, 4096, args.block_comments)
+    elif args.model_name.startswith("Qwen/Qwen2.5-Coder"):
+        model_wrapper = QwenCoderModel(model_name_or_path, 4096, args.block_comments)
     elif args.model_name.startswith("microsoft/phi"):
         model_wrapper = PhiModel(model_name_or_path, 2048, args.block_comments)
     elif args.model_name.startswith("mistralai/Mixtral"):
