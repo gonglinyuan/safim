@@ -705,7 +705,7 @@ def build_model(args: Namespace) -> ModelWrapper:
     elif args.model_name.startswith("Salesforce/codegen"):
         model_wrapper = CodegenModel(model_name_or_path, 2048, args.block_comments)
     elif args.model_name.startswith("bigcode/starcoder"):
-        model_wrapper = StarcoderModel(model_name_or_path, 2048, args.block_comments)
+        model_wrapper = StarcoderModel(model_name_or_path, 4096, args.block_comments)
     elif args.model_name.startswith("bigcode/tiny_starcoder"):
         model_wrapper = StarcoderModel(model_name_or_path, 8192, args.block_comments)
     elif args.model_name.startswith("deepseek-ai/deepseek"):
