@@ -1,4 +1,4 @@
-mkdir -p outputs_block results_block outputs_control results_control outputs_api results_api cache
+mkdir -p outputs_block results_block outputs_control results_control outputs_control_fixed results_control_fixed outputs_api results_api cache
 true > to_generate.bash
 true > to_eval.bash
 
