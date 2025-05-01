@@ -28,8 +28,7 @@ function run_generation_evaluate_and_show_results {
   else
     python show_detailed_results.py \
       ${completion_type} \
-      ${result_file} \
-      --lang python
+      ${result_file}
   fi
 }
 
