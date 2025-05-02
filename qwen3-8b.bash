@@ -34,11 +34,8 @@ function run_generation_evaluate_and_show_results {
 
 model_cfg=Qwen3-8B
 
-run_generation_evaluate_and_show_results "block" "left_to_right" "--post_processors truncate_line_until_block" "l2r-tb"
 run_generation_evaluate_and_show_results "block" "reverse_infilling" "--post_processors truncate_line_until_block" "rfim-tb"
 
-run_generation_evaluate_and_show_results "control_fixed" "left_to_right" "--post_processors truncate_control_remove_colon" "l2r-tcrc"
 run_generation_evaluate_and_show_results "control_fixed" "reverse_infilling" "--post_processors truncate_control_remove_colon" "rfim-tcrc"
 
-run_generation_evaluate_and_show_results "api" "left_to_right" "--post_processors truncate_api_call" "l2r-ta"
 run_generation_evaluate_and_show_results "api" "reverse_infilling" "--post_processors truncate_api_call" "rfim-ta"
