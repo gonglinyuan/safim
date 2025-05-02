@@ -469,6 +469,8 @@ class Qwen3Model(ModelWrapper):
                     max_new_tokens=128,
                     top_p=0.95,
                     logits_processor=self.logits_processor,
+                    eos_token_id=[151664, 151662, 151659, 151660, 151661, 151662, 151663, 151664, 151645, 151643]
+                    # https://github.com/QwenLM/Qwen2.5-Coder/blob/main/examples/Qwen2.5-Coder-fim.py
                 )
             except RuntimeError as e:
                 print(e)
