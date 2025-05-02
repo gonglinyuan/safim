@@ -509,6 +509,9 @@ class GemmaModel(ModelWrapper):
             if block_comments
             else None
         )
+        self.terminators = self.tokenizer.convert_tokens_to_ids(
+            ["<|fim_prefix|>", "<|fim_middle|>", "<|fim_suffix|>", "<|file_separator|>"]
+        ) + [self.tokenizer.eos_token_id]
 
     def invoke(self, prompt: str) -> str:
         input_ids = self.tokenizer(
@@ -525,6 +528,7 @@ class GemmaModel(ModelWrapper):
                     max_new_tokens=128,
                     top_p=0.95,
                     logits_processor=self.logits_processor,
+                    eos_token_id=self.terminators
                 )
             except RuntimeError as e:
                 print(e)
