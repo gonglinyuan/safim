@@ -537,7 +537,10 @@ class GemmaModel(ModelWrapper):
             generated_ids[0, input_ids_len:],
             skip_special_tokens=True
         )
-        return generated_text
+        EOT = "<|file_separator|>"
+        if EOT not in generated_text:
+            generated_text += EOT
+        return generated_text[:generated_text.index(EOT)]
 
     def assemble_infilling_prompt(self, prefix: str, suffix: str, reverse: bool = False) -> str:
         if reverse:
