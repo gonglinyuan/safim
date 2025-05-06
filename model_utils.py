@@ -292,6 +292,10 @@ class StarcoderModel(ModelWrapper):
             if block_comments
             else None
         )
+        terminators = ["<fim_prefix>", "<fim_middle>", "<fim_suffix>", "<fim_pad>"]
+        if "starcoder2" in model_name.lower():
+            terminators.append("<file_sep>")
+        self.terminators = self.tokenizer.convert_tokens_to_ids(terminators) + [self.tokenizer.eos_token_id]
 
     def invoke(self, prompt: str) -> str:
         input_ids = self.tokenizer(
@@ -306,12 +310,13 @@ class StarcoderModel(ModelWrapper):
                 temperature=0.2,
                 max_length=min(input_ids_len + 128, self.max_length),
                 top_p=0.95,
-                logits_processor=self.logits_processor
+                logits_processor=self.logits_processor,
+                eos_token_id=self.terminators
             )
         generated_ids = generated_ids[0, input_ids_len:].tolist()
-        fim_pad_id = self.tokenizer.vocab['<fim_pad>']
-        if fim_pad_id in generated_ids:
-            generated_ids = generated_ids[:generated_ids.index(fim_pad_id)]
+        for terminator_id in self.terminators:
+            if terminator_id in generated_ids:
+                generated_ids = generated_ids[:generated_ids.index(terminator_id)]
         generated_text = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
         return generated_text
 
