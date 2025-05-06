@@ -1,5 +1,6 @@
 # SAFIM Benchmark
 
+
 Syntax-Aware Fill-in-the-Middle (SAFIM) is a benchmark for evaluating Large Language Models (LLMs) on
 the code Fill-in-the-Middle (FIM) task. SAFIM has three subtasks: Algorithmic Block Completion,
 Control-Flow Expression Completion, and API Function Call Completion. SAFIM is sourced from code
